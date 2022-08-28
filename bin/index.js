@@ -6,25 +6,29 @@ const pbk = require('../package.json')
 
 function run() {
     console.log(colors.green(`Timo ${pbk.version}`));
+
     const args = process.argv.slice(2)
-    const filePath = args[0]
-    const targetName = args[1]
-    if (args.length == 0) {
+    let inFileName = args[0]
+    let outFileName = args[1]
+
+    if (args.length < 2) {
         console.log(colors.red('\n请提供输入、输出的参数'));
         return
     }
 
-    if (filePath.endsWith('ts')) {
-        let argsArr = filePath.split('\/')
-        argsArr[argsArr.length - 1] = targetName + '.mp4'
-        const targetPath = argsArr.join('\/')
-        console.log(colors.green(`输入----${filePath}\n输出----${targetPath}`));
-        tsForMp4(filePath, targetPath)
-    }
+    // if (outFileName.endsWith('.ts' || '.mp4')) {
+    //     console.log(colors.red('\n请输入合法的输出格式'));
+    //     return
+    // }
+
+    outFileName = toFilePath(inFileName, outFileName)
+
+    console.log(colors.green(`输入----${inFileName}\n输出----${outFileName}`));
+    remuxing(inFileName, outFileName)
 }
 
-function tsForMp4(filePath, targetPath) {
-    const child = spawn('ffmpeg', ['-i', filePath, '-codec', 'copy', targetPath],
+function remuxing(filePath, outFileName) {
+    const child = spawn('ffmpeg', ['-i', filePath, '-codec', 'copy', outFileName],
         {
             stdio: 'inherit',
             cwd: process.cwd()
@@ -37,6 +41,13 @@ function tsForMp4(filePath, targetPath) {
         console.log(colors.red('\n ------转换成功------'));
         process.exit(e)
     })
+}
+
+
+function toFilePath(file, name) {
+    let argsArr = file.split('\/')
+    argsArr[argsArr.length - 1] = name
+    return argsArr.join('\/')
 }
 
 run()
